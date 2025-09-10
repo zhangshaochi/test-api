@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阿里百炼智能体测试</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+        
+        .header {
+            background: linear-gradient(90deg, #3498db, #2c3e50);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            line-height: 1.4;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background: #3498db;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .ai-message {
+            align-self: flex-start;
+            background: #f0f0f0;
+            color: #333;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-input {
+            padding: 15px 20px;
+            background: #f9f9f9;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message-input input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            outline: none;
+            font-size: 15px;
+        }
+        
+        .message-input input:focus {
+            border-color: #3498db;
+        }
+        
+        .message-input button {
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.3s;
+        }
+        
+        .message-input button:hover {
+            background: #2980b9;
+        }
+        
+        .api-settings {
+            padding: 15px 20px;
+            background: #f5f5f5;
+            border-top: 1px solid #eee;
+        }
+        
+        .api-settings h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #2c3e50;
+        }
+        
+        .api-form {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .api-form input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .api-form button {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0 15px;
+            cursor: pointer;
+        }
+        
+        .typing-indicator {
+            display: none;
+            padding: 10px 16px;
+            background: #f0f0f0;
+            border-radius: 18px;
+            align-self: flex-start;
+            margin-bottom: 15px;
+            color: #777;
+            font-style: italic;
+        }
+        
+        .typing-indicator.show {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                height: 95vh;
+                width: 95%;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>阿里百炼智能体测试</h1>
+            <p>与您的AI助手进行对话，测试API调用功能</p>
+        </div>
+        
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai-message">
+                    您好！我是阿里百炼智能体。您可以在这里测试与我的对话交互。请随时向我提问！
+                </div>
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                智能体正在思考...
+            </div>
+            
+            <div class="message-input">
+                <input type="text" id="userInput" placeholder="输入您的问题..." autocomplete="off">
+                <button id="sendButton">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="api-settings">
+            <h3>API设置（请根据您的实际API修改）</h3>
+            <div class="api-form">
+                <input type="text" id="apiEndpoint" placeholder="https://api.example.com/endpoint">
+                <button id="saveApiButton">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatMessages = document.getElementById('chatMessages');
+            const userInput = document.getElementById('userInput');
+            const sendButton = document.getElementById('sendButton');
+            const apiEndpoint = document.getElementById('apiEndpoint');
+            const saveApiButton = document.getElementById('saveApiButton');
+            const typingIndicator = document.getElementById('typingIndicator');
+            
+            let messages = [
+                {
+                    role: "assistant",
+                    content: "您好！我是阿里百炼智能体。您可以在这里测试与我的对话交互。请随时向我提问！"
+                }
+            ];
+            
+            // 保存API端点（实际应用中应该更安全地存储）
+            saveApiButton.addEventListener('click', function() {
+                if (apiEndpoint.value) {
+                    localStorage.setItem('apiEndpoint', apiEndpoint.value);
+                    alert('API端点已保存！');
+                } else {
+                    alert('请输入有效的API端点');
+                }
+            });
+            
+            // 加载保存的API端点
+            const savedApiEndpoint = localStorage.getItem('apiEndpoint');
+            if (savedApiEndpoint) {
+                apiEndpoint.value = savedApiEndpoint;
+            }
+            
+            // 发送消息函数
+            function sendMessage() {
+                const message = userInput.value.trim();
+                if (!message) return;
+                
+                // 添加用户消息到聊天
+                addMessageToChat('user', message);
+                messages.push({ role: "user", content: message });
+                
+                // 清空输入框
+                userInput.value = '';
+                
+                // 显示正在输入指示器
+                typingIndicator.classList.add('show');
+                
+                // 模拟API调用（实际应用中替换为真实的API调用）
+                simulateApiCall(message);
+            }
+            
+            // 添加消息到聊天界面
+            function addMessageToChat(role, content) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+                messageElement.classList.add(role === 'user' ? 'user-message' : 'ai-message');
+                messageElement.textContent = content;
+                
+                chatMessages.appendChild(messageElement);
+                
+                // 滚动到底部
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // 模拟API调用（实际使用时请替换为真实的API调用代码）
+            function simulateApiCall(message) {
+                // 这里是模拟的API响应，实际使用时应该替换为真实的API调用
+                setTimeout(() => {
+                    // 隐藏正在输入指示器
+                    typingIndicator.classList.remove('show');
+                    
+                    // 模拟的响应
+                    const responses = [
+                        "感谢您的提问！这是来自阿里百炼智能体的响应。",
+                        "我已经理解了您的问题，这是我根据您的查询提供的回答。",
+                        "根据我的分析，您的问题可以这样解答。",
+                        "这是一个很好的问题！我的回答如下：",
+                        "我正在处理您的请求，这是我的回应。"
+                    ];
+                    
+                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                    
+                    // 添加AI响应到聊天
+                    addMessageToChat('assistant', randomResponse);
+                    messages.push({ role: "assistant", content: randomResponse });
+                }, 1500);
+            }
+            
+            // 发送按钮点击事件
+            sendButton.addEventListener('click', sendMessage);
+            
+            // 输入框回车事件
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            // 实际API调用函数示例（需要您根据阿里百炼的API文档实现）
+            /*
+            async function callBailianApi(message) {
+                const endpoint = localStorage.getItem('apiEndpoint') || 'YOUR_API_ENDPOINT';
+                const apiKey = 'sk-e6cc1abb56f449bf81d2c296edfb1d6f'; // 需要安全地存储和访问
+                
+                try {
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: "353cca36c633460b982bc42ca2c2ed28",
+                            messages: messages.concat([{ role: "user", content: message }])
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    return data.choices[0].message.content;
+                } catch (error) {
+                    console.error('API调用错误:', error);
+                    return "抱歉，处理您的请求时出现了问题。";
+                }
+            }
+            */
+        });
+    </script>
+</body>
+</html>
